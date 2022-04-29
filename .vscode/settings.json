@@ -15,5 +15,6 @@
   "prettier.prettierPath": "node_modules\\prettier",
   "vetur.completion.tagCasing": "kebab",
   "vetur.validation.interpolation": false,
-  "typescript.tsdk": "node_modules\\typescript\\lib"
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "vue3snippets.enable-compile-vue-file-on-did-save-code": true
 }
