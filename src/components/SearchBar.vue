@@ -1,28 +1,42 @@
 <template>
   <div :class="$style['search-bar']">
     <input
+      @input="loadButtons"
+      v-model="searchQuery"
       type="text"
       :class="$style['search-bar__input']"
       placeholder="Search or Add..."
     />
-    <section :class="$style['buttons']">
+    <section v-if="showButtons" :class="$style['buttons']">
       <Cancel :class="$style['buttons__button--cancel']" />
-      <Add :class="$style['buttons__button--add']" />
+      <Add
+        :class="!foundMatch ? $style['buttons__can-add'] : $style['buttons__button--add']"
+      />
     </section>
   </div>
 </template>
 
 <script lang="ts">
+import { ref } from "vue";
 import Cancel from "./Cancel.vue";
 import Add from "./Add.vue";
 
 export default {
   name: "SearchBar",
   components: { Cancel, Add },
-  props: {},
-  // setup() {
+  props: { foundMatch: Boolean },
+  setup(props: any, context: any) {
+    let searchQuery = ref("");
+    let showButtons = ref(false);
 
-  // },
+    // hide or show input buttons
+    const loadButtons = (): void => {
+      showButtons.value = searchQuery.value !== "";
+      context.emit("updatedQuery", searchQuery.value);
+    };
+
+    return { searchQuery, showButtons, loadButtons };
+  },
 };
 </script>
 
@@ -75,12 +89,9 @@ export default {
       color: color.$mid-grey;
     }
 
-    & .can-add {
-      color: color.$green;
+    &__can-add {
+      color: color.$teal;
     }
   }
-}
-
-@media only screen and (max-width: 600px) {
 }
 </style>
