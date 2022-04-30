@@ -1,10 +1,17 @@
 <template>
   <div :class="$style.app">
     <main :class="$style.main">
-      <SearchBar />
-      <List />
-      <List />
-      <List />
+      <SearchBar
+        @updatedQuery="(query) => updateSearchQuery(query)"
+        :foundMatch="foundMatch"
+      />
+      <List
+        v-for="item in listItem"
+        :key="item.id"
+        :data="item"
+        :foundMatch="foundMatch"
+        @deleteItem="(prop) => deleteItem(prop)"
+      />
     </main>
     <section :class="$style.sorter">
       <Sort value="Value" :isActive="selected === 'Value'" @click="sortList('Value')" />
@@ -18,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent } from "vue";
+import { ref, defineComponent, computed } from "vue";
 import SearchBar from "./components/SearchBar.vue";
 import List from "./components/List.vue";
 import Sort from "./components/Sort.vue";
@@ -27,14 +34,53 @@ export default defineComponent({
   name: "App",
   components: { SearchBar, List, Sort },
   setup() {
-    let selected = ref("Value");
+    // search query
+    const searchQuery = ref("");
+    const updateSearchQuery = (query: string) => {
+      searchQuery.value = query;
+      console.log(query);
+    };
+
+    // check for match
+    let foundMatch = ref(false);
+
+    // List items
+    const count = ref(0);
+
+    const listItem = ref([
+      { name: "John Smith", id: ++count.value, time: new Date().getDate() },
+      { name: "Aria Blaze", id: ++count.value, time: new Date().getDate() },
+      { name: "Rias Gremory", id: ++count.value, time: new Date().getDate() },
+    ]);
 
     // sort list
+    let selected = ref("Value");
     const sortList = (value: string): void => {
       selected.value = value;
     };
 
-    return { selected, sortList };
+    // delete item from list
+    const deleteItem = (id: number) => {
+      console.log(id);
+      count.value = 0;
+      console.log(count.value);
+      listItem.value = listItem.value.filter((item) => item.id !== id);
+    };
+
+    // const computedList = computed(() => {
+    //   listItem.value = listItem.value.filter((item) => item.id !== itemToDelete.value);
+    //   return listItem.value;
+    // });
+
+    return {
+      selected,
+      sortList,
+      searchQuery,
+      deleteItem,
+      listItem,
+      updateSearchQuery,
+      foundMatch,
+    };
   },
 });
 </script>
