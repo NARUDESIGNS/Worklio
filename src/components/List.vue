@@ -1,17 +1,19 @@
 <template>
   <div :class="$style['list']">
     <section :class="$style['info-container']">
-      <Tick :class="$style['info-container__check']" />
+      <Tick v-if="foundMatch" :class="$style['info-container__check']" />
       <div :class="$style['info']">
-        <p :class="$style['info__header']">Search query exact match</p>
+        <p :class="$style['info__header']">{{ data.name }}</p>
         <p :class="$style['info__id']">
-          <span :class="$style['match']">Exact match, </span>#3
+          <span v-if="foundMatch" :class="$style['match']">Exact match, </span> #{{
+            data.id
+          }}
         </p>
       </div>
     </section>
     <section :class="$style['details']">
-      <p :class="$style['details__time']">2 minutes ago</p>
-      <Trash :class="$style['details__trash']" />
+      <p :class="$style['details__time']">{{ data.time }} minutes ago</p>
+      <Trash @click="deleteItem" :class="$style['details__trash']" />
     </section>
   </div>
 </template>
@@ -19,10 +21,18 @@
 <script>
 import Trash from "./Trash.vue";
 import Tick from "./Tick.vue";
+
 export default {
   name: "List",
   components: { Tick, Trash },
-  props: [],
+  props: ["data", "foundMatch"],
+  setup(props, context) {
+    const deleteItem = () => {
+      context.emit("deleteItem", props.data.id);
+    };
+
+    return { deleteItem };
+  },
 };
 </script>
 
@@ -40,11 +50,13 @@ export default {
   @include flex(center, space-between);
   width: 100%;
   padding: 15px 20px;
-  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  border-bottom: 1px solid rgb(231, 231, 231);
 
   &:hover {
+    border: none;
+    border-radius: 6px;
     background-color: color.$white;
     box-shadow: 0 0 40px color.$shadow;
   }
