@@ -32,6 +32,11 @@ export default {
 
     // hide or show input buttons
     const loadButtons = (): void => {
+      // disallow searchQuery from starting with a space
+      searchQuery.value = searchQuery.value.startsWith(" ")
+        ? searchQuery.value.trim()
+        : searchQuery.value;
+
       showButtons.value = searchQuery.value !== "";
       context.emit("updatedQuery", searchQuery.value);
     };
