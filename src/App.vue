@@ -19,17 +19,13 @@
     </main>
     <section :class="$style.sorter">
       <Sort value="Value" :isActive="selected === 'Value'" @click="sortList('Value')" />
-      <Sort
-        value="Added Date"
-        :isActive="selected === 'Added Date'"
-        @click="sortList('Added Date')"
-      />
+      <Sort value="Added Date" :isActive="selected === 'Added Date'" @click="sortList('Added Date')" />
     </section>
   </div>
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, computed, watch, onUpdated } from "vue";
+import { ref, defineComponent, computed, watch, onUpdated, onMounted } from "vue";
 import SearchBar from "./components/SearchBar.vue";
 import List from "./components/List.vue";
 import Sort from "./components/Sort.vue";
@@ -39,26 +35,46 @@ export default defineComponent({
   name: "App",
   components: { SearchBar, List, Sort },
   setup() {
+    // types
+    type Info = {
+      name: string;
+      id: number;
+      time: number;
+    };
+    
+    let value = ref("Value");
     // List items
     const count = ref(0);
-    const date = new Date().getMinutes();
+    const dateInitialized = new Date().getMinutes();
+    const currentDate = ref(new Date().getMinutes());
 
     const listItem = ref([
-      { name: "John Smith", id: ++count.value, time: new Date().getMinutes() - date },
-      { name: "Aria Blaze", id: ++count.value, time: new Date().getMinutes() - date },
-      { name: "Rias Gremory", id: ++count.value, time: new Date().getMinutes() - date },
+      {
+        name: "John Smith",
+        id: ++count.value,
+        time: dateInitialized,
+      },
+      {
+        name: "Aria Blaze",
+        id: ++count.value,
+        time: dateInitialized,
+      },
+      {
+        name: "Rias Gremory",
+        id: ++count.value,
+        time: dateInitialized,
+      },
     ]);
-
-    //load items from local storage
-    if (localStorage.getItem("list")) {
-      let loadedList = localStorage.getItem("list");
-      // listItem.value = JSON.parse(loadedList);
-    }
 
     // sort list
     let selected = ref("Value");
     const sortList = (value: string): void => {
       selected.value = value;
+      if (selected.value === "Added Date") {
+        computedSearch.value.sort((a, b) => a.time - b.time);
+      } else {
+        // computedSearch.value.sort((a, b) => a.name.codePointAt() - b.name);
+      }
     };
 
     // delete item from list
@@ -89,6 +105,7 @@ export default defineComponent({
 
     // add new item
     const addNewItem = (item: string) => {
+      let dateInitialized = new Date().getMinutes();
       // capitaize initials of names
       item = item
         .split(" ")
@@ -98,15 +115,29 @@ export default defineComponent({
       listItem.value.push({
         name: item,
         id: ++count.value,
-        time: new Date().getMinutes() - date,
+        time: new Date().getMinutes() - currentDate.value,
       });
 
       foundMatch.value = true;
     };
 
+    // watch for changes
+    watch(computedSearch, () => {
+      sortList(selected.value);
+      console.log("list updated!");
+    });
+
     // save to local storage
     onUpdated(() => {
       localStorage.setItem("list", JSON.stringify(listItem.value));
+    });
+
+    //load items from local storage
+    onMounted(() => {
+      if (localStorage.list) {
+        let loadedList: Info[] = JSON.parse(localStorage.list);
+        listItem.value = loadedList;
+      }
     });
 
     return {
