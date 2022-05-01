@@ -8,8 +8,9 @@
       placeholder="Search or Add..."
     />
     <section v-if="showButtons" :class="$style['buttons']">
-      <Cancel :class="$style['buttons__button--cancel']" />
+      <Cancel @click="clearSearchQuery" :class="$style['buttons__button--cancel']" />
       <Add
+        @click="addNewItem"
         :class="!foundMatch ? $style['buttons__can-add'] : $style['buttons__button--add']"
       />
     </section>
@@ -26,7 +27,7 @@ export default {
   components: { Cancel, Add },
   props: { foundMatch: Boolean },
   setup(props: any, context: any) {
-    let searchQuery = ref("");
+    let searchQuery = ref();
     let showButtons = ref(false);
 
     // hide or show input buttons
@@ -35,7 +36,13 @@ export default {
       context.emit("updatedQuery", searchQuery.value);
     };
 
-    return { searchQuery, showButtons, loadButtons };
+    // clear search query
+    const clearSearchQuery = () => {
+      searchQuery.value = "";
+      showButtons.value = false;
+    };
+
+    return { searchQuery, showButtons, loadButtons, clearSearchQuery };
   },
 };
 </script>
