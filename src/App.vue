@@ -3,15 +3,19 @@
     <main :class="$style.main">
       <SearchBar
         @updatedQuery="(query) => updateSearchQuery(query)"
+        @addItem="(item) => addNewItem(item)"
+        @clearQuery="(query) => updateSearchQuery(query)"
         :foundMatch="foundMatch"
       />
-      <List
-        v-for="item in listItem"
-        :key="item.id"
-        :data="item"
-        :foundMatch="foundMatch"
-        @deleteItem="(prop) => deleteItem(prop)"
-      />
+      <div :class="$style['list-container']">
+        <List
+          v-for="item in computedSearch"
+          :key="item.id"
+          :data="item"
+          :foundMatch="foundMatch"
+          @deleteItem="(prop) => deleteItem(prop)"
+        />
+      </div>
     </main>
     <section :class="$style.sorter">
       <Sort value="Value" :isActive="selected === 'Value'" @click="sortList('Value')" />
@@ -25,33 +29,31 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, computed } from "vue";
+import { ref, defineComponent, computed, watch, onUpdated } from "vue";
 import SearchBar from "./components/SearchBar.vue";
 import List from "./components/List.vue";
 import Sort from "./components/Sort.vue";
+import { capitalize } from "lodash";
 
 export default defineComponent({
   name: "App",
   components: { SearchBar, List, Sort },
   setup() {
-    // search query
-    const searchQuery = ref("");
-    const updateSearchQuery = (query: string) => {
-      searchQuery.value = query;
-      console.log(query);
-    };
-
-    // check for match
-    let foundMatch = ref(false);
-
     // List items
     const count = ref(0);
+    const date = new Date().getMinutes();
 
     const listItem = ref([
-      { name: "John Smith", id: ++count.value, time: new Date().getDate() },
-      { name: "Aria Blaze", id: ++count.value, time: new Date().getDate() },
-      { name: "Rias Gremory", id: ++count.value, time: new Date().getDate() },
+      { name: "John Smith", id: ++count.value, time: new Date().getMinutes() - date },
+      { name: "Aria Blaze", id: ++count.value, time: new Date().getMinutes() - date },
+      { name: "Rias Gremory", id: ++count.value, time: new Date().getMinutes() - date },
     ]);
+
+    //load items from local storage
+    if (localStorage.getItem("list")) {
+      let loadedList = localStorage.getItem("list");
+      // listItem.value = JSON.parse(loadedList);
+    }
 
     // sort list
     let selected = ref("Value");
@@ -60,17 +62,52 @@ export default defineComponent({
     };
 
     // delete item from list
+    let itemToDelete = ref(0);
     const deleteItem = (id: number) => {
-      console.log(id);
-      count.value = 0;
-      console.log(count.value);
+      itemToDelete.value = id;
+      foundMatch.value = false;
       listItem.value = listItem.value.filter((item) => item.id !== id);
     };
 
-    // const computedList = computed(() => {
-    //   listItem.value = listItem.value.filter((item) => item.id !== itemToDelete.value);
-    //   return listItem.value;
-    // });
+    // search query
+    const searchQuery = ref("");
+    const updateSearchQuery = (query: string) => {
+      searchQuery.value = query;
+      // find exact match
+      computedSearch.value.map((item) => {
+        foundMatch.value = searchQuery.value.toLowerCase() === item.name.toLowerCase();
+      });
+    };
+
+    // check for partial match
+    let foundMatch = ref(false);
+    let computedSearch = computed(() => {
+      return listItem.value.filter((item) => {
+        return item.name.toLowerCase().includes(searchQuery.value.toLowerCase());
+      });
+    });
+
+    // add new item
+    const addNewItem = (item: string) => {
+      // capitaize initials of names
+      item = item
+        .split(" ")
+        .map((item) => capitalize(item))
+        .join(" ");
+
+      listItem.value.push({
+        name: item,
+        id: ++count.value,
+        time: new Date().getMinutes() - date,
+      });
+
+      foundMatch.value = true;
+    };
+
+    // save to local storage
+    onUpdated(() => {
+      localStorage.setItem("list", JSON.stringify(listItem.value));
+    });
 
     return {
       selected,
@@ -80,6 +117,8 @@ export default defineComponent({
       listItem,
       updateSearchQuery,
       foundMatch,
+      computedSearch,
+      addNewItem,
     };
   },
 });
@@ -98,6 +137,16 @@ export default defineComponent({
 
   & .main {
     flex: 2;
+  }
+
+  & .list-container {
+    height: 70vh;
+    overflow-y: scroll;
+  }
+
+  & .sorter {
+    align-self: flex-start;
+    margin-top: 15%;
   }
 }
 

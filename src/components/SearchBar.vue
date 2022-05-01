@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import Cancel from "./Cancel.vue";
 import Add from "./Add.vue";
 
@@ -45,9 +45,28 @@ export default {
     const clearSearchQuery = () => {
       searchQuery.value = "";
       showButtons.value = false;
+      context.emit("clearQuery", searchQuery.value);
     };
 
-    return { searchQuery, showButtons, loadButtons, clearSearchQuery };
+    // add button is clicked
+    const addNewItem = () => {
+      if (!props.foundMatch) {
+        context.emit("addItem", searchQuery.value);
+      }
+    };
+
+    onMounted(() => {
+      // key events
+      document.addEventListener("keydown", (e) => {
+        if (searchQuery.value && e.code === "Enter") addNewItem();
+        if (e.code === "Escape") {
+          searchQuery.value = "";
+          clearSearchQuery();
+        }
+      });
+    });
+
+    return { searchQuery, showButtons, loadButtons, clearSearchQuery, addNewItem };
   },
 };
 </script>
