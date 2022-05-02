@@ -18,22 +18,23 @@
 </template>
 
 <script lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, defineComponent } from "vue";
 import Cancel from "./Cancel.vue";
 import Add from "./Add.vue";
 
-export default {
+export default defineComponent({
   name: "SearchBar",
   components: { Cancel, Add },
   props: { foundMatch: Boolean },
-  setup(props: any, context: any) {
+  setup(props, context) {
     let searchQuery = ref();
     let showButtons = ref(false);
 
     // hide or show input buttons
     const loadButtons = (): void => {
       // disallow searchQuery from starting with a space
-      searchQuery.value = searchQuery.value.startsWith(" ")
+      searchQuery.value = 
+        searchQuery.value.startsWith(" ")
         ? searchQuery.value.trim()
         : searchQuery.value;
 
@@ -68,11 +69,12 @@ export default {
 
     return { searchQuery, showButtons, loadButtons, clearSearchQuery, addNewItem };
   },
-};
+});
 </script>
 
 <style lang="scss" module>
 @use "sass/color";
+
 // layout template
 @mixin flex($align, $justify, $gap: 10px) {
   display: flex;

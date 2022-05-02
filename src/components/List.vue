@@ -5,9 +5,7 @@
       <div :class="$style['info']">
         <p :class="$style['info__header']">{{ data.name }}</p>
         <p :class="$style['info__id']">
-          <span v-if="foundMatch" :class="$style['match']">Exact match, </span> #{{
-            data.id
-          }}
+          <span v-if="foundMatch" :class="$style['match']">Exact match, </span> #{{ data.id }}
         </p>
       </div>
     </section>
@@ -19,13 +17,21 @@
 </template>
 
 <script>
+import { defineComponent } from 'vue'
 import Trash from "./Trash.vue";
 import Tick from "./Tick.vue";
 
-export default {
+export default defineComponent({
   name: "List",
   components: { Tick, Trash },
-  props: ["data", "foundMatch"],
+  props: {
+    data: {
+      name: String,
+      id: Number,
+      time: Number
+    }, 
+    foundMatch: Boolean
+  },
   setup(props, context) {
     const deleteItem = () => {
       context.emit("deleteItem", props.data.id);
@@ -33,7 +39,7 @@ export default {
 
     return { deleteItem };
   },
-};
+});
 </script>
 
 <style lang="scss" module>
@@ -70,6 +76,10 @@ export default {
     &__check,
     & .match {
       color: color.$green;
+    }
+
+    & .info__header{
+      text-transform: capitalize;
     }
 
     & .info__header,

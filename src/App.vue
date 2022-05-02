@@ -9,147 +9,131 @@
       />
       <div :class="$style['list-container']">
         <List
-          v-for="item in computedSearch"
+          v-for="item in computedList"
           :key="item.id"
           :data="item"
           :foundMatch="foundMatch"
-          @deleteItem="(prop) => deleteItem(prop)"
+          @deleteItem="(id) => deleteItem(id)"
         />
       </div>
     </main>
     <section :class="$style.sorter">
-      <Sort value="Value" :isActive="selected === 'Value'" @click="sortList('Value')" />
-      <Sort value="Added Date" :isActive="selected === 'Added Date'" @click="sortList('Added Date')" />
+      <Sort value="Value" :isActive="sortBy === 'value'" @click="sortList('value')" />
+      <Sort value="Added Date" :isActive="sortBy === 'date'" @click="sortList('date')" />
     </section>
   </div>
 </template>
 
 <script lang="ts">
 import { ref, defineComponent, computed, watch, onUpdated, onMounted } from "vue";
+import { capitalize } from 'lodash';
 import SearchBar from "./components/SearchBar.vue";
 import List from "./components/List.vue";
 import Sort from "./components/Sort.vue";
-import { capitalize } from "lodash";
 
 export default defineComponent({
   name: "App",
   components: { SearchBar, List, Sort },
   setup() {
     // types
-    type Info = {
+    type ListType = {
       name: string;
       id: number;
       time: number;
     };
     
-    let value = ref("Value");
     // List items
     const count = ref(0);
-    const dateInitialized = new Date().getMinutes();
-    const currentDate = ref(new Date().getMinutes());
 
     const listItem = ref([
-      {
-        name: "John Smith",
-        id: ++count.value,
-        time: dateInitialized,
-      },
-      {
-        name: "Aria Blaze",
-        id: ++count.value,
-        time: dateInitialized,
-      },
-      {
-        name: "Rias Gremory",
-        id: ++count.value,
-        time: dateInitialized,
-      },
+      { name: "John Smith", id: ++count.value, time: 2 },
+      { name: "Aria Blaze", id: ++count.value, time: 6 },
+      { name: "Rias Gremory", id: ++count.value, time: 1 }
     ]);
 
     // sort list
-    let selected = ref("Value");
-    const sortList = (value: string): void => {
-      selected.value = value;
-      if (selected.value === "Added Date") {
-        computedSearch.value.sort((a, b) => a.time - b.time);
+    let sortBy = ref("value");
+    const sortList = (value: string): void => { 
+      sortBy.value = value;
+      if (sortBy.value === "date") { 
+        listItem.value.sort((a, b) => a.time - b.time);
       } else {
-        // computedSearch.value.sort((a, b) => a.name.codePointAt() - b.name);
+        listItem.value.sort((a, b) => (a.name > b.name) ? 1 : -1);
       }
     };
 
     // delete item from list
-    let itemToDelete = ref(0);
     const deleteItem = (id: number) => {
-      itemToDelete.value = id;
-      foundMatch.value = false;
-      listItem.value = listItem.value.filter((item) => item.id !== id);
+      let itemToDelete = listItem.value.findIndex(item => item.id === id);
+      listItem.value.splice(itemToDelete, 1);
     };
 
-    // search query
+    // process search query
     const searchQuery = ref("");
     const updateSearchQuery = (query: string) => {
       searchQuery.value = query;
       // find exact match
-      computedSearch.value.map((item) => {
+      for (let item of computedList.value) {
         foundMatch.value = searchQuery.value.toLowerCase() === item.name.toLowerCase();
-      });
+      };
     };
 
     // check for partial match
     let foundMatch = ref(false);
-    let computedSearch = computed(() => {
+    let computedList = computed(() => {
       return listItem.value.filter((item) => {
         return item.name.toLowerCase().includes(searchQuery.value.toLowerCase());
       });
     });
 
+
+
     // add new item
+    let startTime = new Date().getMinutes();
     const addNewItem = (item: string) => {
-      let dateInitialized = new Date().getMinutes();
-      // capitaize initials of names
+       // capitaize initials of names
       item = item
         .split(" ")
         .map((item) => capitalize(item))
         .join(" ");
 
-      listItem.value.push({
-        name: item,
-        id: ++count.value,
-        time: new Date().getMinutes() - currentDate.value,
-      });
-
+      listItem.value.push({ name: item.trim(), id: ++count.value, time: new Date().getMinutes() - startTime });
       foundMatch.value = true;
     };
 
-    // watch for changes
-    watch(computedSearch, () => {
-      sortList(selected.value);
-      console.log("list updated!");
+    // preserve sort option
+    watch(computedList, () => {
+      sortList(sortBy.value);
     });
 
     // save to local storage
     onUpdated(() => {
       localStorage.setItem("list", JSON.stringify(listItem.value));
+      localStorage.setItem("sortOption", sortBy.value);
     });
 
     //load items from local storage
     onMounted(() => {
+      // retrieve list items
       if (localStorage.list) {
-        let loadedList: Info[] = JSON.parse(localStorage.list);
+        let loadedList: ListType[] = JSON.parse(localStorage.list);
         listItem.value = loadedList;
       }
+
+      // retrieve sort option
+      if (localStorage.sortOption) sortBy.value = localStorage.sortOption;
     });
 
     return {
-      selected,
+      sortBy,
       sortList,
       searchQuery,
       deleteItem,
       listItem,
       updateSearchQuery,
       foundMatch,
-      computedSearch,
-      addNewItem,
+      computedList,
+      addNewItem
     };
   },
 });
