@@ -26,7 +26,7 @@
 
 <script lang="ts">
 import { ref, defineComponent, computed, watch, onUpdated, onMounted } from "vue";
-import { capitalize } from 'lodash';
+import { capitalize } from "lodash";
 import SearchBar from "./components/SearchBar.vue";
 import List from "./components/List.vue";
 import Sort from "./components/Sort.vue";
@@ -41,30 +41,30 @@ export default defineComponent({
       id: number;
       time: number;
     };
-    
+
     // List items
     const count = ref(0);
 
     const listItem = ref([
       { name: "John Smith", id: ++count.value, time: 2 },
       { name: "Aria Blaze", id: ++count.value, time: 6 },
-      { name: "Rias Gremory", id: ++count.value, time: 1 }
+      { name: "Rias Gremory", id: ++count.value, time: 1 },
     ]);
 
     // sort list
     let sortBy = ref("value");
-    const sortList = (value: string): void => { 
+    const sortList = (value: string): void => {
       sortBy.value = value;
-      if (sortBy.value === "date") { 
+      if (sortBy.value === "date") {
         listItem.value.sort((a, b) => a.time - b.time);
       } else {
-        listItem.value.sort((a, b) => (a.name > b.name) ? 1 : -1);
+        listItem.value.sort((a, b) => (a.name > b.name ? 1 : -1));
       }
     };
 
     // delete item from list
     const deleteItem = (id: number) => {
-      let itemToDelete = listItem.value.findIndex(item => item.id === id);
+      const itemToDelete = listItem.value.findIndex((item) => item.id === id);
       listItem.value.splice(itemToDelete, 1);
     };
 
@@ -75,29 +75,31 @@ export default defineComponent({
       // find exact match
       for (let item of computedList.value) {
         foundMatch.value = searchQuery.value.toLowerCase() === item.name.toLowerCase();
-      };
+      }
     };
 
     // check for partial match
     let foundMatch = ref(false);
-    let computedList = computed(() => {
+    const computedList = computed(() => {
       return listItem.value.filter((item) => {
         return item.name.toLowerCase().includes(searchQuery.value.toLowerCase());
       });
     });
 
-
-
     // add new item
-    let startTime = new Date().getMinutes();
+    const startTime = new Date().getMinutes();
     const addNewItem = (item: string) => {
-       // capitaize initials of names
+      // capitaize initials of names
       item = item
         .split(" ")
         .map((item) => capitalize(item))
         .join(" ");
 
-      listItem.value.push({ name: item.trim(), id: ++count.value, time: new Date().getMinutes() - startTime });
+      listItem.value.push({
+        name: item.trim(),
+        id: ++count.value,
+        time: new Date().getMinutes() - startTime,
+      });
       foundMatch.value = true;
     };
 
@@ -116,7 +118,7 @@ export default defineComponent({
     onMounted(() => {
       // retrieve list items
       if (localStorage.list) {
-        let loadedList: ListType[] = JSON.parse(localStorage.list);
+        const loadedList: ListType[] = JSON.parse(localStorage.list);
         listItem.value = loadedList;
       }
 
@@ -129,11 +131,10 @@ export default defineComponent({
       sortList,
       searchQuery,
       deleteItem,
-      listItem,
       updateSearchQuery,
       foundMatch,
       computedList,
-      addNewItem
+      addNewItem,
     };
   },
 });

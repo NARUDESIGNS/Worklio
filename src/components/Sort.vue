@@ -26,7 +26,6 @@ export default {
   width: 200px;
   color: color.$mid-grey;
   padding: 11px 15px;
-  //   background-color: color.$white;
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
