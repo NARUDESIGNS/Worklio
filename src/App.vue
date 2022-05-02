@@ -103,7 +103,7 @@ export default defineComponent({
       foundMatch.value = true;
     };
 
-    // preserve sort option
+    // preserve sort option while list updates
     watch(computedList, () => {
       sortList(sortBy.value);
     });
